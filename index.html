@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SA Weather</title>
+  <link href='https://api.mapbox.com/mapbox-gl-js/v2.2.0/mapbox-gl.css' rel='stylesheet' />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.3/css/all.css">
+  <link href="css/owfont-master/css/owfont-regular.css" rel="stylesheet" type="text/css">
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Nunito+Sans&display=swap');
+    body {
+      background: linear-gradient(-45deg, #eed952, #e73c7e, #23a6d5);
+      font-family: 'Nunito Sans', sans-serif;
+    }
+    #map, div {
+      border-radius: 5px;
+    }
+    section {
+      align-items: center;
+    }
+    img {
+      width: 40px;
+      height: 40px;
+    }
+    #map {
+      height: 250px;
+    }
+    input {
+      border-radius: 5px;
+      border: none;
+    }
+    ::-webkit-input-placeholder {
+      text-align: center;
+    }
+    #alerts {
+      overflow: hidden;
+      /*text-overflow: ellipsis;*/
+      white-space: nowrap;
+    }
+    #alerts:hover {
+      white-space: normal;
+    }
+    .weather {
+      margin: .5em 0;
+    }
+    @media (max-width: 575px) {
+      body {
+        /*background: black;*/
+      }
+    }
+    /*// Small devices (landscape phones, 576px and up)*/
+    @media (min-width: 576px) {
+      body {
+        /*background: orange;*/
+      }
+      #subHead {
+        margin-right: auto;
+      }
+    }
+    /*// Medium devices (tablets, 768px and up)*/
+    @media (min-width: 768px) {
+      body {
+        /*background: red;*/
+      }
+    }
+    /*// Large devices (desktops, 992px and up)*/
+    @media (min-width: 992px) {
+      body {
+        background: linear-gradient(-45deg, #eed952, #e73c7e, #23a6d5);
+      }
+    }
+    /*// Extra large devices (large desktops, 1200px and up)*/
+    @media (min-width: 1200px) {
+      body {
+        /*background: blue;*/
+      }
+    }
+  </style>
+</head>
+
+<body class="container-fluid">
+<!-- MAIN-->
+<section class="text-white d-flex row text-center">
+  <h1 class="col-12 my-3">Weather</h1>
+  <input class="col-6 m-auto p-2 text-center" placeholder='search' id="input">
+  <div class="col-12 mt-3">
+    <h4 class="" id="subHead"></h4>
+    <h4 class="" id="temperature"></h4>
+  </div>
+</section>
+<div class="text-danger bg-white mb-2" id="alerts"></div>
+<div class="justify-content-center d-lg-flex" id="weather"></div>
+<div class="mt-2" id='map'></div>
+
+<!--SCRIPTS-->
+<script src="keys.js"></script>
+<script src='https://api.mapbox.com/mapbox-gl-js/v2.2.0/mapbox-gl.js'></script>
+<script src="map-geocoder-utils.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@geocoder-free/utils@0.2.8/umd/geocoderfreeutils.min.js"></script>
+
+<script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
+<script>
+
+  // INITIAL COORDINATES
+  var coordinates = [-98.4936, 29.4241];
+  var lon = coordinates[0];
+  var lat = coordinates[1];
+
+  // WORK IN PROGRESS RADAR OVERLAY
+  mapboxgl.accessToken = MAPBOX_ACCESS_TOKEN;
+  var mapStyle = {
+    'version': 8,
+    'name': 'Dark',
+    'sources': {
+      'mapbox': {
+        'type': 'vector',
+        'url': 'mapbox://mapbox.mapbox-streets-v8'
+      },
+      'overlay': {
+        'type': 'image',
+        'url': 'https://docs.mapbox.com/mapbox-gl-js/assets/radar.gif',
+        'coordinates':
+                [
+                  [-80.425, 46.437],
+                  [-71.516, 46.437],
+                  [-71.516, 37.936],
+                  [-80.425, 37.936]
+                ]
+      }
+    },
+    'sprite': 'mapbox://sprites/mapbox/dark-v10',
+    'glyphs': 'mapbox://fonts/mapbox/{fontstack}/{range}.pbf',
+    'layers': [
+      {
+        'id': 'background',
+        'type': 'background',
+        'paint': { 'background-color': '#111' }
+      },
+      {
+        'id': 'water',
+        'source': 'mapbox',
+        'source-layer': 'water',
+        'type': 'fill',
+        'paint': { 'fill-color': '#2c2c2c' }
+      },
+      {
+        'id': 'boundaries',
+        'source': 'mapbox',
+        'source-layer': 'admin',
+        'type': 'line',
+        'paint': {
+          'line-color': '#797979',
+          'line-dasharray': [2, 2, 6, 2]
+        },
+        'filter': ['all', ['==', 'maritime', 0]]
+      },
+      {
+        'id': 'overlay',
+        'source': 'overlay',
+        'type': 'raster',
+        'paint': { 'raster-opacity': 0.85 }
+      },
+      {
+        'id': 'cities',
+        'source': 'mapbox',
+        'source-layer': 'place_label',
+        'type': 'symbol',
+        'layout': {
+          'text-field': '{name_en}',
+          'text-font': ['DIN Offc Pro Bold', 'Arial Unicode MS Bold'],
+          'text-size': [
+            'interpolate',
+            ['linear'],
+            ['zoom'],
+            4,
+            9,
+            6,
+            12
+          ]
+        },
+        'paint': {
+          'text-color': '#969696',
+          'text-halo-width': 2,
+          'text-halo-color': 'rgba(0, 0, 0, 0.85)'
+        }
+      },
+      {
+        'id': 'states',
+        'source': 'mapbox',
+        'source-layer': 'place_label',
+        'type': 'symbol',
+        'layout': {
+          'text-transform': 'uppercase',
+          'text-field': '{name_en}',
+          'text-font': ['DIN Offc Pro Bold', 'Arial Unicode MS Bold'],
+          'text-letter-spacing': 0.15,
+          'text-max-width': 7,
+          'text-size': [
+            'interpolate',
+            ['linear'],
+            ['zoom'],
+            4,
+            10,
+            6,
+            14
+          ]
+        },
+        'filter': ['==', ['get', 'class'], 'state'],
+        'paint': {
+          'text-color': '#969696',
+          'text-halo-width': 2,
+          'text-halo-color': 'rgba(0, 0, 0, 0.85)'
+        }
+      }
+    ]
+  };
+
+  // MAP
+  // mapboxgl.accessToken = MAPBOX_ACCESS_TOKEN;
+  var map = new mapboxgl.Map({
+    container: 'map', // ID
+    // style: 'mapbox://styles/mapbox/dark-v10',
+    style: mapStyle,
+    center: coordinates, // [lng, lat]
+    zoom: 9
+  });
+
+  // CREATE MARKER
+  var marker = new mapboxgl.Marker({
+    color: 'red',
+  })
+          .setLngLat(coordinates)
+          .setDraggable(true)
+          .addTo(map);
+
+  // GET OPEN WEATHER DATA AND FEED INTO SITE
+  function setWeather() {
+    $.get("http://api.openweathermap.org/data/2.5/onecall", {
+      APPID: OPEN_WEATHER_APPID,
+      lon: lon,
+      lat: lat,
+      units: "imperial"
+    }).done(function (data) {
+      console.log(data);
+      $("#weather").html("");
+      for (var i = 0; i < data.daily.length-1; i++) {
+        var today = data.daily[i];
+        var date = new Date(today.dt * 1000);
+        var day = date.toLocaleString('en-us', {weekday: 'short'});
+        var humanDate = date.toLocaleString('en-us', {day: 'numeric'});
+        var iconurl = "http://openweathermap.org/img/w/" + today.weather[0].icon + ".png";
+        var html =
+                `<div class="weather bg-white w-100 row border m-lg-1">
+                    <div class="col-3 col-sm-2 col-lg-12 d-flex align-items-center font-weight-bold justify-content-center"> ${day} ${humanDate} </div>
+                    <div class="d-none d-sm-block col-sm-3 col-lg-12 text-center m-auto"><em> ${today.weather[0].description.replace('intensity', ' ')} </em> </div>
+                    <div class="col-3 col-sm-4 col-lg-12 m-auto">
+                        <div id="farenheight" class="d-flex row justify-content-center">
+                            <div class="text-center col-12" id="icon"> <img alt="Weather" id="wicon" src= ${iconurl} > </div>
+                            <div class="text-danger m-1"> ${today.temp.max.toFixed(0)} </div>
+                            <div class="text-primary m-1"> ${today.temp.min.toFixed(0)} </div>
+                            <span class="p-1">&#8457;</span>
+                        </div>
+                    </div>
+                    <div class="col-4 col-sm-3 col-lg-12 m-auto">
+                        <div class="text-left text-lg-center"> <i class="fas fa-tint mr-2 text-primary"> </i> ${(today.pop * 100).toFixed(0)} % </div>
+                        <div class="text-left text-lg-center mt-1"> <i class="fas fa-wind mr-2"> </i> ${today.wind_speed.toFixed(0)} mph </div>
+<!--                        <div class="text-left">Humidity: <strong> ${today.humidity} </strong> </div>-->
+                    </div>
+                </div>`;
+        $('#weather').append(html);
+      }
+
+      // WEATHER ALERTS
+      function severeWeather() {
+        $('#alerts').html("");
+        for (var i = 0; i < data.alerts.length; i++) {
+          var warning =
+                  `<div class="text-uppercase font-weight-bold"> ${data.alerts[i].event} :</div> <div class="">${data.alerts[i].description}</div> <br>`;
+          $('#alerts').append(warning);
+        }
+      }
+      // CURRENT WEATHER
+      function current() {
+        $('#temperature').html("");
+        var iconurl = "http://openweathermap.org/img/w/" + data.current.weather[0].icon + ".png";
+        var currentConditions =
+                `${data.current.temp.toFixed(0)} <span>&#8457;</span> <img class="" alt="Weather" id="icon" src=' ${iconurl} '>`
+        $('#temperature').append(currentConditions);
+      }
+      current();
+      severeWeather();
+    });
+  }
+  setWeather();
+
+  // UPDATES FORECAST TO AREA OF MAP MARKER IS DRAGGED!
+  marker.on('dragend', function () {
+    lon = marker.getLngLat().lng;
+    lat = marker.getLngLat().lat;
+    setWeather();
+    reverseGeo();
+  });
+
+  // FLY TO NEW LOCATION AND RESET MARKER VIA SEARCHBOX INFO
+  function fly() {
+    var userInput = $('#input').val();
+    geocode(userInput, MAPBOX_ACCESS_TOKEN).then(function (info) {
+      console.log(info);
+      var newCenter = {
+        lng: info[0],
+        lat: info[1]
+      };
+      map.flyTo({center: newCenter});
+      marker
+              .setLngLat(newCenter)
+              .setDraggable(true)
+              .addTo(map)
+      lon = info[0]
+      lat = info[1]
+      setWeather();
+      reverseGeo();
+    });
+  }
+  // click button or press enter, both trigger fly function
+  $("#input").keyup(function(event) {
+    event.keyCode === 13? fly() : null;
+  });
+
+  // REVERSE GEOCODE TO FEED INTO SUBHEADER
+  function reverseGeo() {
+    $.get("http://api.openweathermap.org/geo/1.0/reverse?lat=" + lat + "&lon=" + lon + "&limit=" + 5 + "&appid=" + OPEN_WEATHER_APPID)
+            .done(function (data) {
+              $("#subHead").html("");
+              var html = data[0].name + ', ' + data[0].state
+              $('#subHead').append(html);
+            });
+  }
+  reverseGeo();
+
+  // ZOOM CONTROLS TOP RIGHT
+  map.addControl(new mapboxgl.NavigationControl());
+
+  // NOTES
+  // i need to center the warning box
+  // different icons
+  // weather overlay
+  // map style options dropdown
+  // press and hold drop pen
+  // hourly
+  // 7-10 day
+  // missy thing
+  // celsius
+  // fix warning colors
+  // on click expand or boxes, expand arrow
+  // sunrise sunset
+  // make starting locaiton users current location
+  // weather app sends notifications
+
+
+</script>
+</body>
+</html>
