@@ -1,9 +1,5 @@
 # WeatherApp
 
-If you would like to use the WeatherMap yourself:
+A solo project in creating an interactive map to show weather conditions. Drag and drop a marker for desired location or use the search bar to get results -including warnings of bad weather! Responsive layout created with bootstrap.
 
-1. Download this repo to you own computer 
-2. Go to https://openweathermap.org/api, to create and account and generate your own api key https://home.openweathermap.org/api_keys
-3. Copy and paste your unique key into the keys.js file on line 7 'inside the single quotes'
-
-ENJOY THE MAP!
+Made with: HTML/CSS, BootStrap, Javascript, jQuery, AJAX, OpenWeatherMap & Mapbox API
