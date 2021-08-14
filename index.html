@@ -2,86 +2,16 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SA Weather</title>
   <link href='https://api.mapbox.com/mapbox-gl-js/v2.2.0/mapbox-gl.css' rel='stylesheet' />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.3/css/all.css">
   <link href="css/owfont-master/css/owfont-regular.css" rel="stylesheet" type="text/css">
-
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Nunito+Sans&display=swap');
-    body {
-      background: linear-gradient(-45deg, #eed952, #e73c7e, #23a6d5);
-      font-family: 'Nunito Sans', sans-serif;
-    }
-    #map, div {
-      border-radius: 5px;
-    }
-    section {
-      align-items: center;
-    }
-    img {
-      width: 40px;
-      height: 40px;
-    }
-    #map {
-      height: 250px;
-    }
-    input {
-      border-radius: 5px;
-      border: none;
-    }
-    ::-webkit-input-placeholder {
-      text-align: center;
-    }
-    #alerts {
-      overflow: hidden;
-      /*text-overflow: ellipsis;*/
-      white-space: nowrap;
-    }
-    #alerts:hover {
-      white-space: normal;
-    }
-    .weather {
-      margin: .5em 0;
-    }
-    @media (max-width: 575px) {
-      body {
-        /*background: black;*/
-      }
-    }
-    /*// Small devices (landscape phones, 576px and up)*/
-    @media (min-width: 576px) {
-      body {
-        /*background: orange;*/
-      }
-      #subHead {
-        margin-right: auto;
-      }
-    }
-    /*// Medium devices (tablets, 768px and up)*/
-    @media (min-width: 768px) {
-      body {
-        /*background: red;*/
-      }
-    }
-    /*// Large devices (desktops, 992px and up)*/
-    @media (min-width: 992px) {
-      body {
-        background: linear-gradient(-45deg, #eed952, #e73c7e, #23a6d5);
-      }
-    }
-    /*// Extra large devices (large desktops, 1200px and up)*/
-    @media (min-width: 1200px) {
-      body {
-        /*background: blue;*/
-      }
-    }
-  </style>
+  <link rel="stylesheet" href="style.css"/>
 </head>
 
 <body class="container-fluid">
-<!-- MAIN-->
 <section class="text-white d-flex row text-center">
   <h1 class="col-12 my-3">Weather</h1>
   <input class="col-6 m-auto p-2 text-center" placeholder='search' id="input">
@@ -99,7 +29,6 @@
 <script src='https://api.mapbox.com/mapbox-gl-js/v2.2.0/mapbox-gl.js'></script>
 <script src="map-geocoder-utils.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@geocoder-free/utils@0.2.8/umd/geocoderfreeutils.min.js"></script>
-
 <script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
 <script>
 
@@ -110,119 +39,12 @@
 
   // WORK IN PROGRESS RADAR OVERLAY
   mapboxgl.accessToken = MAPBOX_ACCESS_TOKEN;
-  var mapStyle = {
-    'version': 8,
-    'name': 'Dark',
-    'sources': {
-      'mapbox': {
-        'type': 'vector',
-        'url': 'mapbox://mapbox.mapbox-streets-v8'
-      },
-      'overlay': {
-        'type': 'image',
-        'url': 'https://docs.mapbox.com/mapbox-gl-js/assets/radar.gif',
-        'coordinates':
-                [
-                  [-80.425, 46.437],
-                  [-71.516, 46.437],
-                  [-71.516, 37.936],
-                  [-80.425, 37.936]
-                ]
-      }
-    },
-    'sprite': 'mapbox://sprites/mapbox/dark-v10',
-    'glyphs': 'mapbox://fonts/mapbox/{fontstack}/{range}.pbf',
-    'layers': [
-      {
-        'id': 'background',
-        'type': 'background',
-        'paint': { 'background-color': '#111' }
-      },
-      {
-        'id': 'water',
-        'source': 'mapbox',
-        'source-layer': 'water',
-        'type': 'fill',
-        'paint': { 'fill-color': '#2c2c2c' }
-      },
-      {
-        'id': 'boundaries',
-        'source': 'mapbox',
-        'source-layer': 'admin',
-        'type': 'line',
-        'paint': {
-          'line-color': '#797979',
-          'line-dasharray': [2, 2, 6, 2]
-        },
-        'filter': ['all', ['==', 'maritime', 0]]
-      },
-      {
-        'id': 'overlay',
-        'source': 'overlay',
-        'type': 'raster',
-        'paint': { 'raster-opacity': 0.85 }
-      },
-      {
-        'id': 'cities',
-        'source': 'mapbox',
-        'source-layer': 'place_label',
-        'type': 'symbol',
-        'layout': {
-          'text-field': '{name_en}',
-          'text-font': ['DIN Offc Pro Bold', 'Arial Unicode MS Bold'],
-          'text-size': [
-            'interpolate',
-            ['linear'],
-            ['zoom'],
-            4,
-            9,
-            6,
-            12
-          ]
-        },
-        'paint': {
-          'text-color': '#969696',
-          'text-halo-width': 2,
-          'text-halo-color': 'rgba(0, 0, 0, 0.85)'
-        }
-      },
-      {
-        'id': 'states',
-        'source': 'mapbox',
-        'source-layer': 'place_label',
-        'type': 'symbol',
-        'layout': {
-          'text-transform': 'uppercase',
-          'text-field': '{name_en}',
-          'text-font': ['DIN Offc Pro Bold', 'Arial Unicode MS Bold'],
-          'text-letter-spacing': 0.15,
-          'text-max-width': 7,
-          'text-size': [
-            'interpolate',
-            ['linear'],
-            ['zoom'],
-            4,
-            10,
-            6,
-            14
-          ]
-        },
-        'filter': ['==', ['get', 'class'], 'state'],
-        'paint': {
-          'text-color': '#969696',
-          'text-halo-width': 2,
-          'text-halo-color': 'rgba(0, 0, 0, 0.85)'
-        }
-      }
-    ]
-  };
 
   // MAP
   // mapboxgl.accessToken = MAPBOX_ACCESS_TOKEN;
   var map = new mapboxgl.Map({
     container: 'map', // ID
-    // style: 'mapbox://styles/mapbox/dark-v10',
-    style: mapStyle,
+    style: 'mapbox://styles/mapbox/dark-v10',
     center: coordinates, // [lng, lat]
     zoom: 9
   });
@@ -253,11 +75,11 @@
         var iconurl = "http://openweathermap.org/img/w/" + today.weather[0].icon + ".png";
         var html =
                 `<div class="weather bg-white w-100 row border m-lg-1">
-                    <div class="col-3 col-sm-2 col-lg-12 d-flex align-items-center font-weight-bold justify-content-center"> ${day} ${humanDate} </div>
+                    <div class="col-3 col-sm-2 col-lg-12 d-flex align-items-center justify-content-center"> ${day} ${humanDate} </div>
                     <div class="d-none d-sm-block col-sm-3 col-lg-12 text-center m-auto"><em> ${today.weather[0].description.replace('intensity', ' ')} </em> </div>
                     <div class="col-3 col-sm-4 col-lg-12 m-auto">
                         <div id="farenheight" class="d-flex row justify-content-center">
-                            <div class="text-center col-12" id="icon"> <img alt="Weather" id="wicon" src= ${iconurl} > </div>
+                            <div class="text-center col-12" id="icon"> <img alt="Weather" id="wicon" src= ${iconurl} ></div>
                             <div class="text-danger m-1"> ${today.temp.max.toFixed(0)} </div>
                             <div class="text-primary m-1"> ${today.temp.min.toFixed(0)} </div>
                             <span class="p-1">&#8457;</span>
@@ -295,7 +117,7 @@
   }
   setWeather();
 
-  // UPDATES FORECAST TO AREA OF MAP MARKER IS DRAGGED!
+  // UPDATES FORECAST TO AREA OF MAP MARKER IS DRAGGED
   marker.on('dragend', function () {
     lon = marker.getLngLat().lng;
     lat = marker.getLngLat().lat;
@@ -323,6 +145,7 @@
       reverseGeo();
     });
   }
+
   // click button or press enter, both trigger fly function
   $("#input").keyup(function(event) {
     event.keyCode === 13? fly() : null;
@@ -341,23 +164,6 @@
 
   // ZOOM CONTROLS TOP RIGHT
   map.addControl(new mapboxgl.NavigationControl());
-
-  // NOTES
-  // i need to center the warning box
-  // different icons
-  // weather overlay
-  // map style options dropdown
-  // press and hold drop pen
-  // hourly
-  // 7-10 day
-  // missy thing
-  // celsius
-  // fix warning colors
-  // on click expand or boxes, expand arrow
-  // sunrise sunset
-  // make starting locaiton users current location
-  // weather app sends notifications
-
 
 </script>
 </body>
