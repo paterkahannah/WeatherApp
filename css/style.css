@@ -1,7 +1,11 @@
 @import url('https://fonts.googleapis.com/css2?family=Nunito+Sans&display=swap');
 
+html {
+    height: 100%;
+}
+
 body {
-    background: linear-gradient(-45deg, #eed952, #e73c7e, #23a6d5);
+    background: linear-gradient(-45deg, #eed952, #e73c7e, #23a6d5) fixed;
     font-family: 'Nunito Sans', sans-serif;
 }
 #map, div {
@@ -15,7 +19,7 @@ img {
     height: 40px;
 }
 #map {
-    height: 250px;
+    height: 500px;
 }
 input {
     border-radius: 5px;
@@ -34,10 +38,4 @@ input {
 }
 .weather {
     margin: .5em 0;
-}
-/*// Small devices (landscape phones, 576px and up)*/
-@media (min-width: 576px) {
-    #subHead {
-        margin-right: auto;
-    }
 }

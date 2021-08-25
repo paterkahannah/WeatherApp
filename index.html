@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SA Weather</title>
+  <title>Weather App</title>
   <link href='https://api.mapbox.com/mapbox-gl-js/v2.2.0/mapbox-gl.css' rel='stylesheet' />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.3/css/all.css">
@@ -99,7 +99,7 @@
         $('#alerts').html("");
         for (var i = 0; i < data.alerts.length; i++) {
           var warning =
-                  `<div class="text-uppercase font-weight-bold"> ${data.alerts[i].event} :</div> <div class="">${data.alerts[i].description}</div> <br>`;
+                  `<div class="text-uppercase fw-bolder"> ${data.alerts[i].event} :</div> <div>${data.alerts[i].description}</div> <br>`;
           $('#alerts').append(warning);
         }
       }
@@ -146,7 +146,7 @@
     });
   }
 
-  // click button or press enter, both trigger fly function
+  // click search button or press enter, both trigger fly function
   $("#input").keyup(function(event) {
     event.keyCode === 13? fly() : null;
   });
