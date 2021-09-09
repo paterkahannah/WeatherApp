@@ -13,6 +13,7 @@ var map = new mapboxgl.Map({
     center: coordinates, // [lng, lat]
     zoom: 9
 });
+
 // RAIN OVERLAY
 window.map = map;
 map.on("load", () => {
